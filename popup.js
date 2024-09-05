@@ -3,106 +3,88 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Function to execute in the content script
-async function openAndFillForm(option, startMonth, endMonth, amount) {
-    console.log('Opening and filling the form with the following details:', { option, startMonth, endMonth, amount });
+function findFundingAddButton() {
+    return [...document.querySelectorAll('button')].find(button => {
+        const p = button.querySelector('p');
+        return p && p.innerText === 'Add';
+    }) || null;
+}
 
-    function findFundingAddButton() {
-        const button = [...document.querySelectorAll('button')].find(button => {
-            const p = button.querySelector('p');
-            return p && p.innerText === 'Add';
-        });
-        return button || null;
-    }
-
-    function clickObject(object) {
-        if (object) {
-            const mouseDown = new MouseEvent('mousedown', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            object.dispatchEvent(mouseDown);
-        }
-    }
-
-    function findFundingOption(option) {
-        return document.querySelector(`div[title="${option}"]`);
-    }
-
-    function findMonth(option) {
-        return document.querySelector(`div[aria-label="${option}"]`);
-    }
-
+function clickAddButton() {
     const button = findFundingAddButton();
-    if (!button) {
-        console.error('Add button not found.');
-        return;
+    if (button) {
+        button.click();
+    } else {
+        console.error("Add button not found");
     }
+}
 
-    // Simulate button click to open form
-    button.click();
+function findFundingForm() {
+    return document.querySelector('form') || null;
+}
 
-    await sleep(1500);  // Add delay to let form load
+function findSelectArrowZones() {
+    const form = findFundingForm();
+    return form ? form.querySelectorAll('.Select-arrow-zone') : [];
+}
 
-    const arrows = document.querySelectorAll('.Select-arrow-zone');
+function clickObject(object) {
+    if (object) {
+        const mouseDown = new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        object.dispatchEvent(mouseDown);
+    } else {
+        console.error("Object to click not found");
+    }
+}
+
+function findFundingOption(option) {
+    return document.querySelector(`div[title="${option}"]`) || null;
+}
+
+function findMonth(option) {
+    return document.querySelector(`div[aria-label="${option}"]`) || null;
+}
+
+function openAndFillForm(option, startMonth, endMonth, amount) {
+    clickAddButton();
+
+    const arrows = findSelectArrowZones();
     if (arrows.length < 3) {
-        console.error('Not enough select arrow zones found.');
+        console.error("Not enough select arrow zones found in the form");
         return;
     }
 
-    // Select the funding option
     clickObject(arrows[0]);
-    await sleep(1000);  // Wait for options to load
     const fundingOption = findFundingOption(option);
-    if (fundingOption) {
-        fundingOption.click();
-    } else {
-        console.error(`Funding option ${option} not found.`);
-    }
+    clickObject(fundingOption);
 
-    // Select the start month
     clickObject(arrows[1]);
-    await sleep(1000);
     const startMonthOption = findMonth(startMonth);
-    if (startMonthOption) {
-        startMonthOption.click();
-    } else {
-        console.error(`Start month ${startMonth} not found.`);
-    }
+    clickObject(startMonthOption);
 
-    // Select the end month
     clickObject(arrows[2]);
-    await sleep(1000);
     const endMonthOption = findMonth(endMonth);
-    if (endMonthOption) {
-        endMonthOption.click();
-    } else {
-        console.error(`End month ${endMonth} not found.`);
-    }
+    clickObject(endMonthOption);
 
-    // Fill the amount
-    await sleep(1000);
     const inputElement = document.querySelector('input[placeholder="Amount"]');
     if (inputElement) {
-        inputElement.value = amount;
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeInputValueSetter.call(inputElement, amount);
         inputElement.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-        console.error('Amount input field not found.');
+        console.error("Amount input field not found");
     }
 
-    // Click the submit button
-    await sleep(1000);
     const submitButton = document.querySelector('button[type="submit"]');
     if (submitButton) {
-        console.log('Clicking the submit button...');
         submitButton.click();
     } else {
-        console.error('Submit button not found.');
+        console.error("Submit button not found");
     }
-
-    // Wait for the form submission to complete before resolving
-    await sleep(2000);  // Adjust delay if needed to account for form submission
 }
 
 document.getElementById('fillFormBtn').addEventListener('click', async () => {
@@ -138,7 +120,6 @@ document.getElementById('fillFormBtn').addEventListener('click', async () => {
                     return;
                 }
 
-                // Inject and execute the openAndFillForm function in the active tab
                 chrome.scripting.executeScript({
                     target: { tabId: activeTab.id },
                     func: openAndFillForm,
@@ -150,6 +131,6 @@ document.getElementById('fillFormBtn').addEventListener('click', async () => {
             });
         });
 
-        await sleep(3000);  // Ensure there is enough time between submissions
+        await sleep(3000);  // Ensure enough time between submissions
     }
 });

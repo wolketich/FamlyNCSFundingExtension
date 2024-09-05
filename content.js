@@ -1,4 +1,6 @@
-// dummy function
+// Content script placeholder (Add logic if needed in the future)
 function dummy() {
-    console.log('dummy');
+    console.log('Content script loaded.');
 }
+
+dummy();

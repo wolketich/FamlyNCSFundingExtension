@@ -14,17 +14,30 @@ document.getElementById('fillFormBtn').addEventListener('click', () => {
         return;
     }
 
-    // Send the message to the content script
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-            action: 'fillForm',
-            data: { option, startMonth, endMonth, amount }
-        }, (response) => {
-            if (response) {
-                console.log(response.status);
-            } else {
-                console.error('No response from content script.');
-            }
-        });
+        const activeTab = tabs[0];
+        
+        if (!activeTab) {
+            console.error('No active tab found.');
+            return;
+        }
+
+        console.log('Sending message to tab:', activeTab.url);
+        
+        // Ensure that the content script is loaded by checking the URL
+        if (activeTab.url && activeTab.url.startsWith('http')) {
+            chrome.tabs.sendMessage(activeTab.id, {
+                action: 'fillForm',
+                data: { option, startMonth, endMonth, amount }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error('Error handling response:', chrome.runtime.lastError.message);
+                } else if (response) {
+                    console.log(response.status);
+                }
+            });
+        } else {
+            console.error('The content script cannot be injected into this type of page.');
+        }
     });
 });

@@ -1,3 +1,8 @@
+// Helper function to add a delay
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Find and click "Add" button, open form, fill it out
 function findFundingAddButton() {
     const button = [...document.querySelectorAll('button')].find(button => {
@@ -62,10 +67,13 @@ function findMonth(option) {
     return monthElement || null;
 }
 
-function openAndFillForm(option, startMonth, endMonth, amount) {
+async function openAndFillForm(option, startMonth, endMonth, amount) {
     console.log('Opening and filling the form with the following details:', { option, startMonth, endMonth, amount });
 
     clickAddButton();
+
+    // Adding a delay before finding the select arrow zones
+    await sleep(500);
 
     const arrows = findSelectArrowZones();
     if (arrows.length < 3) {
@@ -74,16 +82,31 @@ function openAndFillForm(option, startMonth, endMonth, amount) {
     }
 
     clickObject(arrows[0]);
+    
+    // Adding delay before finding and selecting funding option
+    await sleep(300);
+
     const fundingOption = findFundingOption(option);
     clickObject(fundingOption);
 
     clickObject(arrows[1]);
+
+    // Adding delay before selecting the start month
+    await sleep(300);
+
     const startMonthOption = findMonth(startMonth);
     clickObject(startMonthOption);
 
     clickObject(arrows[2]);
+
+    // Adding delay before selecting the end month
+    await sleep(300);
+
     const endMonthOption = findMonth(endMonth);
     clickObject(endMonthOption);
+
+    // Adding a delay before filling the amount
+    await sleep(500);
 
     const inputElement = document.querySelector('input[placeholder="Amount"]');
     if (inputElement) {
@@ -94,6 +117,9 @@ function openAndFillForm(option, startMonth, endMonth, amount) {
     } else {
         console.error('Amount input field not found.');
     }
+
+    // Adding a delay before clicking the submit button
+    await sleep(500);
 
     const submitButton = document.querySelector('button[type="submit"]');
     if (submitButton) {

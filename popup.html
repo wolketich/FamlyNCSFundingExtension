@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Automate Funding Form</title>
+    <style>
+        body {
+            width: 200px;
+            font-family: Arial, sans-serif;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Start Automation</button>
+    <script>
+        document.getElementById('startButton').addEventListener('click', () => {
+            chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+                chrome.scripting.executeScript({
+                    target: {tabId: tabs[0].id},
+                    files: ['content.js']
+                });
+            });
+        });
+    </script>
+</body>
+</html>

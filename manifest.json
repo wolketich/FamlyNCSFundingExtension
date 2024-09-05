@@ -1,0 +1,16 @@
+{
+    "manifest_version": 3,
+    "name": "Automate Funding Form",
+    "version": "1.0",
+    "description": "Automate filling and submission of the funding form.",
+    "permissions": ["activeTab", "scripting"],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["https://app.famly.co/*"],
+        "js": ["content.js"]
+      }
+    ]
+  }

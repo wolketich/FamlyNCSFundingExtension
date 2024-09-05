@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Funding Form Filler",
-    "version": "1.0",
+    "version": "1.9",
     "description": "Automatically open and fill funding forms on your site.",
     "permissions": ["activeTab", "scripting"],
     "action": {

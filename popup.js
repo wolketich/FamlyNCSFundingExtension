@@ -3,70 +3,86 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function findFundingAddButton() {
-    return [...document.querySelectorAll('button')].find(button => {
-        const p = button.querySelector('p');
-        return p && p.innerText === 'Add';
-    }) || null;
-}
-
-function clickAddButton() {
-    const button = findFundingAddButton();
-    if (button) {
-        button.click();
-    } else {
-        console.error("Add button not found");
-    }
-}
-
-function findFundingForm() {
-    return document.querySelector('form') || null;
-}
-
-function findSelectArrowZones() {
-    const form = findFundingForm();
-    return form ? form.querySelectorAll('.Select-arrow-zone') : [];
-}
-
-function clickObject(object) {
-    if (object) {
-        const mouseDown = new MouseEvent('mousedown', {
-            bubbles: true,
-            cancelable: true,
-            view: window
+async function openAndFillForm(option, startMonth, endMonth, amount) {
+    // Click Add button to open the form
+    function findFundingAddButton() {
+        const button = [...document.querySelectorAll('button')].find(button => {
+            const p = button.querySelector('p');
+            return p && p.innerText === 'Add';
         });
-        object.dispatchEvent(mouseDown);
-    } else {
-        console.error("Object to click not found");
+        return button || null;
     }
-}
 
-function findFundingOption(option) {
-    return document.querySelector(`div[title="${option}"]`) || null;
-}
+    const clickAddButton = () => {
+        const button = findFundingAddButton();
+        if (button) {
+            button.click();
+        } else {
+            console.error("Add button not found");
+        }
+    };
 
-function findMonth(option) {
-    return document.querySelector(`div[aria-label="${option}"]`) || null;
-}
+    // Wait for the form to load after clicking "Add"
+    const waitForForm = async () => {
+        for (let i = 0; i < 10; i++) {  // Try for 5 seconds
+            const form = document.querySelector('form');
+            if (form) {
+                return form;
+            }
+            await sleep(500);
+        }
+        console.error("Form not found.");
+        return null;
+    };
 
-function openAndFillForm(option, startMonth, endMonth, amount) {
+    const clickObject = (object) => {
+        if (object) {
+            const mouseDown = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            object.dispatchEvent(mouseDown);
+        } else {
+            console.error("Object to click not found");
+        }
+    };
+
+    const findFundingOption = (option) => {
+        return document.querySelector(`div[title="${option}"]`) || null;
+    };
+
+    const findMonth = (option) => {
+        return document.querySelector(`div[aria-label="${option}"]`) || null;
+    };
+
+    // Start filling the form
     clickAddButton();
+    await sleep(300); 
 
-    const arrows = findSelectArrowZones();
+    // Wait for the form to be loaded
+    const form = await waitForForm();
+    if (!form) return;
+
+    // Find and click the select arrow zones
+    const arrows = form.querySelectorAll('.Select-arrow-zone');
     if (arrows.length < 3) {
         console.error("Not enough select arrow zones found in the form");
         return;
     }
 
     clickObject(arrows[0]);
+    await sleep(300);  // Wait for options to load
     const fundingOption = findFundingOption(option);
     clickObject(fundingOption);
 
     clickObject(arrows[1]);
+    await sleep(300); 
     const startMonthOption = findMonth(startMonth);
     clickObject(startMonthOption);
 
     clickObject(arrows[2]);
+    await sleep(300); 
     const endMonthOption = findMonth(endMonth);
     clickObject(endMonthOption);
 
@@ -120,12 +136,17 @@ document.getElementById('fillFormBtn').addEventListener('click', async () => {
                     return;
                 }
 
+                // Inject the function and run it
                 chrome.scripting.executeScript({
                     target: { tabId: activeTab.id },
                     func: openAndFillForm,
                     args: [option, months[index], months[index], amount]
-                }, () => {
-                    console.log(`Form filled for ${months[index]} with amount ${amount}`);
+                }, (result) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error during execution: ', chrome.runtime.lastError.message);
+                    } else {
+                        console.log(`Form filled for ${months[index]} with amount ${amount}`);
+                    }
                     resolve();
                 });
             });

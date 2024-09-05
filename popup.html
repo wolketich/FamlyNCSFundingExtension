@@ -1,31 +1,28 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Automate Funding Form</title>
+  <head>
+    <title>Funding Form Filler</title>
     <style>
-        body {
-            width: 200px;
-            font-family: Arial, sans-serif;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-        }
+      body { width: 300px; font-family: Arial, sans-serif; padding: 10px; }
+      input { width: 100%; margin-bottom: 10px; }
     </style>
-</head>
-<body>
-    <button id="startButton">Start Automation</button>
-    <script>
-        document.getElementById('startButton').addEventListener('click', () => {
-            chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-                chrome.scripting.executeScript({
-                    target: {tabId: tabs[0].id},
-                    files: ['content.js']
-                });
-            });
-        });
-    </script>
-</body>
+  </head>
+  <body>
+    <h2>Fill Funding Form</h2>
+    <label>Funding Option:</label>
+    <input id="option" type="text" placeholder="NCS 2024/2025" />
+
+    <label>Start Month:</label>
+    <input id="startMonth" type="text" placeholder="January 2024" />
+
+    <label>End Month:</label>
+    <input id="endMonth" type="text" placeholder="December 2024" />
+
+    <label>Amount:</label>
+    <input id="amount" type="number" placeholder="Enter amount" />
+
+    <button id="fillFormBtn">Fill Form</button>
+
+    <script src="popup.js"></script>
+  </body>
 </html>

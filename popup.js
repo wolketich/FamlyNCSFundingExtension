@@ -57,8 +57,7 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
     };
 
     // Start filling the form
-    clickAddButton();
-    await sleep(300); 
+    clickAddButton(); 
 
     // Wait for the form to be loaded
     const form = await waitForForm();
@@ -72,17 +71,14 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
     }
 
     clickObject(arrows[0]);
-    await sleep(300);  // Wait for options to load
     const fundingOption = findFundingOption(option);
     clickObject(fundingOption);
 
     clickObject(arrows[1]);
-    await sleep(300); 
     const startMonthOption = findMonth(startMonth);
     clickObject(startMonthOption);
 
     clickObject(arrows[2]);
-    await sleep(300); 
     const endMonthOption = findMonth(endMonth);
     clickObject(endMonthOption);
 
@@ -152,6 +148,8 @@ document.getElementById('fillFormBtn').addEventListener('click', async () => {
             });
         });
 
-        await sleep(3000);  // Ensure enough time between submissions
+        await sleep(700);  // Ensure enough time between submissions
     }
+
+    alert('Form filled successfully!');
 });

@@ -1,3 +1,8 @@
+// declare global error variable (counter + error months)
+let errorMonths = [];
+let errorCounter = 0;
+
+
 // Helper function to add a delay
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -18,6 +23,8 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
         if (button) {
             button.click();
         } else {
+            errorCounter++;
+            errorMonths.push(startMonth);
             console.error("Add button not found");
         }
     };
@@ -31,6 +38,8 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
             }
             await sleep(500);
         }
+        errorCounter++;
+        errorMonths.push(startMonth);
         console.error("Form not found.");
         return null;
     };
@@ -44,6 +53,8 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
             });
             object.dispatchEvent(mouseDown);
         } else {
+            errorCounter++;
+            errorMonths.push(startMonth);
             console.error("Object to click not found");
         }
     };
@@ -66,6 +77,8 @@ async function openAndFillForm(option, startMonth, endMonth, amount) {
     // Find and click the select arrow zones
     const arrows = form.querySelectorAll('.Select-arrow-zone');
     if (arrows.length < 3) {
+        errorCounter++;
+        errorMonths.push(startMonth);
         console.error("Not enough select arrow zones found in the form");
         return;
     }
@@ -148,8 +161,10 @@ document.getElementById('fillFormBtn').addEventListener('click', async () => {
             });
         });
 
-        await sleep(700);  // Ensure enough time between submissions
+        await sleep(200);  // Ensure enough time between submissions
     }
-
-    alert('Form filled successfully!');
+    if (errorCounter > 0) {
+        alert(`Form filled with ${errorCounter} errors: ${errorMonths.join(', ')}`);
+    } else
+        alert('Form filled successfully!');
 });

@@ -1,15 +1,23 @@
 {
-    "manifest_version": 3,
-    "name": "Funding Form Filler",
-    "version": "3.3",
-    "description": "Automatically open and fill funding forms on your site.",
-    "permissions": ["activeTab", "scripting"],
-    "action": {
-      "default_popup": "popup.html"
-    },
-    "background": {
-      "service_worker": "background.js"
-    },
+  "manifest_version": 3,
+  "name": "Funding Form Filler",
+  "version": "1.0",
+  "description": "Automate filling of funding forms.",
+  "permissions": ["activeTab", "scripting", "commands", "tabs"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "trigger-ecce-funding": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Trigger ECCE funding action"
+    }
+  },
     "content_scripts": [
       {
         "matches": ["<all_urls>"],

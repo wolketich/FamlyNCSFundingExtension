@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funding Form Filler</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f4f7fc;
             margin: 0;
             padding: 20px;
-            width: 300px;
+            width: 400px;
             box-sizing: border-box;
         }
 
@@ -19,41 +18,58 @@
             font-size: 18px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: center;
         }
 
-        label {
+        h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            margin-top: 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 10px;
+        }
+
+        .form-grid label {
             font-size: 14px;
             font-weight: 400;
             color: #666;
-            margin-bottom: 5px;
             display: block;
         }
 
-        input[type="text"],
-        input[type="number"],
-        textarea {
+        .form-grid input[type="text"],
+        .form-grid textarea,
+        .form-grid select {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
+            padding: 8px;
+            margin-bottom: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            font-size: 14px;
+            font-size: 13px;
             box-sizing: border-box;
             background-color: #fff;
             outline: none;
         }
 
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        textarea:focus {
+        .form-grid input[type="text"]:focus,
+        .form-grid textarea:focus,
+        .form-grid select:focus {
             border-color: #5a9efb;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background-color: #5a9efb;
             color: white;
             font-size: 14px;
@@ -62,23 +78,11 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-bottom: 10px;
         }
 
         button:hover {
             background-color: #4a8edf;
-        }
-
-        .info {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 20px;
-        }
-
-        .error {
-            color: #ff6b6b;
-            font-size: 12px;
-            text-align: center;
-            margin-bottom: 10px;
         }
 
         footer {
@@ -92,16 +96,59 @@
 <body>
 
     <h1>Funding Form Filler</h1>
-    <label for="option">Funding Type</label>
-    <input type="text" id="option" placeholder="Enter funding type" value="NCS 2024/2025"> <!-- Default Value -->
 
-    <label for="amounts">Amounts (comma-separated)</label>
-    <textarea id="amounts" rows="3" placeholder="Enter amounts, e.g., 1000, 1200, 0, ..."></textarea>
+    <!-- Existing Form Filler -->
+    <h2>NCS Funding Filling</h2>
+    <div class="form-grid">
+        <label for="option">Funding Type</label>
+        <input type="text" id="option" placeholder="Enter funding type" value="NCS 2024/2025">
+        
+        <label for="amounts" class="full-width">Amounts (comma-separated)</label>
+        <textarea id="amounts" rows="3" placeholder="Enter amounts, e.g., 1000, 1200, 0, ..." class="full-width"></textarea>
 
-    <button id="fillFormBtn">Fill Form</button>
+        <button id="fillFormBtn" class="full-width">Fill Form</button>
+        <!-- TO DO: Less Months -->
+    </div>
+    <hr>
 
+     <!-- New Delete Funding Section -->
+     <h2>Delete NCS Funding</h2>
+     <div class="form-grid">
+         <label for="deleteMonth">Select Month</label>
+         <select id="deleteMonth" class="full-width">
+             <!-- Options will be populated via JavaScript -->
+         </select>
+ 
+         <button id="deleteFundingBtn" class="full-width">Delete NCS Funding </button>
+     </div>
+ 
+     <hr>
+    <!-- New ECCE Funding Section -->
+    <h2>ECCE Funding</h2>
+    <div class="form-grid">
+        <label for="ecceOption">Funding Type</label>
+        <label for="ecceAmount">Amount</label>
+
+        <input type="text" id="ecceOption" value="ECCE 2024/2025">
+        <input type="text" id="ecceAmount" value="245.10">
+
+        <label for="ecceStartDate">Start Date</label>
+        <label for="ecceEndDate">End Date</label>
+
+        <select id="ecceStartDate">
+            <!-- Options will be populated via JavaScript -->
+        </select>
+        <select id="ecceEndDate">
+            <!-- Options will be populated via JavaScript -->
+        </select>
+
+        <button id="ecceFundingBtn" class="full-width">ECCE funding</button>
+    </div>
+    <hr>
+
+   
     <footer>
-        &copy; 2024 Form Automation
+        &copy; 2024 Form Automation by Vladislav Cernega
     </footer>
 
     <script src="popup.js"></script>

@@ -11,12 +11,31 @@ function sleep(ms) {
 async function openAndFillForm(option, startMonth, endMonth, amount) {
     // Click Add button to open the form
     function findFundingAddButton() {
-        const button = [...document.querySelectorAll('button')].find(button => {
-            const p = button.querySelector('p');
-            return p && p.innerText === 'Add';
-        });
-        return button || null;
-    }
+        const allDivs = document.getElementsByTagName('div');
+        for (const div of allDivs) {
+          const h3Elements = div.getElementsByTagName('h3');
+          for (const h3 of h3Elements) {
+            if (h3.textContent.trim() === 'Funding') {
+              const buttons = div.getElementsByTagName('button');
+              for (const button of buttons) {
+                if (button.innerText.trim() === 'Add funding') {
+                  return button;
+                }
+              }
+              const childDivs = div.querySelectorAll('div');
+              for (const childDiv of childDivs) {
+                const buttonsInChildDiv = childDiv.getElementsByTagName('button');
+                for (const button of buttonsInChildDiv) {
+                  if (button.innerText.trim() === 'Add') {
+                    return button;
+                  }
+                }
+              }
+            }
+          }
+        }
+        return null;
+      }
 
     const clickAddButton = () => {
         const button = findFundingAddButton();

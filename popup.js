@@ -9,260 +9,202 @@ function sleep(ms) {
 }
 
 async function openAndFillForm(option, startMonth, endMonth, amount) {
-    // Click Add button to open the form
-    function findFundingAddButton() {
-        const allDivs = document.getElementsByTagName('div');
-        for (const div of allDivs) {
-          const h3Elements = div.getElementsByTagName('h3');
-          for (const h3 of h3Elements) {
-            if (h3.textContent.trim() === 'Funding') {
-              const buttons = div.getElementsByTagName('button');
-              for (const button of buttons) {
-                if (button.innerText.trim() === 'Add funding') {
-                  return button;
-                }
-              }
-              const childDivs = div.querySelectorAll('div');
-              for (const childDiv of childDivs) {
-                const buttonsInChildDiv = childDiv.getElementsByTagName('button');
-                for (const button of buttonsInChildDiv) {
-                  if (button.innerText.trim() === 'Add') {
-                    return button;
-                  }
-                }
-              }
-            }
-          }
+    // Helper to pause execution for a specified time
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Wait for a specific DOM element to appear
+    async function waitForElement(selector, maxRetries = 10, interval = 25) {
+        for (let i = 0; i < maxRetries; i++) {
+            const element = document.querySelector(selector);
+            if (element) return element;
+            await sleep(interval);
         }
-        return null;
-      }
-
-    const clickAddButton = () => {
-        const button = findFundingAddButton();
-        if (button) {
-            button.click();
-        } else {
-            errorCounter++;
-            errorMonths.push(startMonth);
-            console.error("Add button not found");
-        }
-    };
-
-    // Wait for the form to load after clicking "Add"
-    const waitForForm = async () => {
-        for (let i = 0; i < 10; i++) {  // Try for 5 seconds
-            const form = document.querySelector('form');
-            if (form) {
-                return form;
-            }
-            await sleep(500);
-        }
-        errorCounter++;
-        errorMonths.push(startMonth);
-        console.error("Form not found.");
-        return null;
-    };
-
-    const clickObject = (object) => {
-        if (object) {
-            const mouseDown = new MouseEvent('mousedown', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            object.dispatchEvent(mouseDown);
-        } else {
-            errorCounter++;
-            errorMonths.push(startMonth);
-            console.error("Object to click not found");
-        }
-    };
-
-    const findFundingOption = (option) => {
-        return document.querySelector(`div[title="${option}"]`) || null;
-    };
-
-    const findMonth = (option) => {
-        return document.querySelector(`div[aria-label="${option}"]`) || null;
-    };
-
-    // Start filling the form
-    clickAddButton(); 
-
-    // Wait for the form to be loaded
-    const form = await waitForForm();
-    if (!form) return;
-
-    // Find and click the select arrow zones
-    const arrows = form.querySelectorAll('.Select-arrow-zone');
-    if (arrows.length < 3) {
-        errorCounter++;
-        errorMonths.push(startMonth);
-        console.error("Not enough select arrow zones found in the form");
-        return;
+        throw new Error(`Element with selector "${selector}" not found`);
     }
 
-    clickObject(arrows[0]);
-    const fundingOption = findFundingOption(option);
-    clickObject(fundingOption);
+    // Simulate a mouse click on an element
+    function simulateClick(element) {
+        if (!element) throw new Error("Element to click not found");
+        element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+    }
 
-    clickObject(arrows[1]);
-    const startMonthOption = findMonth(startMonth);
-    clickObject(startMonthOption);
-
-    clickObject(arrows[2]);
-    const endMonthOption = findMonth(endMonth);
-    clickObject(endMonthOption);
-
-    const inputElement = document.querySelector('input[placeholder="Amount"]');
-    if (inputElement) {
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        nativeInputValueSetter.call(inputElement, amount);
+    // Populate an input field with a value
+    function populateInput(inputElement, value) {
+        if (!inputElement) throw new Error("Input field not found");
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+        nativeInputValueSetter.call(inputElement, value);
         inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-    } else {
-        console.error("Amount input field not found");
     }
 
-    const submitButton = document.querySelector('button[type="submit"]');
-    if (submitButton) {
-        submitButton.click();
-    } else {
-        console.error("Submit button not found");
+    // Step 1: Find and click the "Add funding" button
+    function findAndClickAddFundingButton() {
+        const fundingSection = Array.from(document.getElementsByTagName('div')).find((div) => {
+            const heading = div.querySelector('h3');
+            return heading && heading.textContent.trim() === 'Funding';
+        });
+
+        if (!fundingSection) throw new Error("Funding section not found");
+
+        const addButton = Array.from(fundingSection.getElementsByTagName('button')).find(
+            (btn) => btn.innerText.trim() === 'Add funding' || btn.innerText.trim() === 'Add'
+        );
+
+        if (!addButton) throw new Error("Add button not found");
+        addButton.click();
     }
+
+    // Step 2: Wait for the form to appear
+    const form = await (async () => {
+        findAndClickAddFundingButton();
+        return waitForElement('form');
+    })();
+
+    // Step 3: Select the funding option
+    const fundingDropdown = form.querySelectorAll('.Select-arrow-zone')[0];
+    if (!fundingDropdown) throw new Error("Funding dropdown not found");
+    simulateClick(fundingDropdown);
+
+    const fundingOption = await waitForElement(`div[title="${option}"]`);
+    simulateClick(fundingOption);
+
+    // Step 4: Select the start month
+    const startMonthDropdown = form.querySelectorAll('.Select-arrow-zone')[1];
+    if (!startMonthDropdown) throw new Error("Start month dropdown not found");
+    simulateClick(startMonthDropdown);
+
+    const startMonthOption = await waitForElement(`div[aria-label="${startMonth}"]`);
+    simulateClick(startMonthOption);
+
+    // Step 5: Select the end month
+    const endMonthDropdown = form.querySelectorAll('.Select-arrow-zone')[2];
+    if (!endMonthDropdown) throw new Error("End month dropdown not found");
+    simulateClick(endMonthDropdown);
+    await sleep(100);
+
+    const endMonthOption = await waitForElement(`div[aria-label="${endMonth}"]`);
+    simulateClick(endMonthOption);
+
+    // Step 6: Input the amount
+    const amountInput = form.querySelector('input[placeholder="Amount"]');
+    populateInput(amountInput, amount);
+
+
+    // Step 7: Submit the form
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) throw new Error("Submit button not found");
+    submitButton.click();
 }
 
 async function openAndDeleteForm(startMonth) {
-    // Step 1: Find the <h3> element with text "Funding"
-    const h3Elements = document.querySelectorAll('h3');
-    let fundingHeader = null;
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    h3Elements.forEach(h3 => {
-        if (h3.textContent.trim() === 'Funding') {
-            fundingHeader = h3;
-        }
-    });
-
-    if (!fundingHeader) {
-        console.error('Funding <h3> element not found');
-    } else {
-        // Step 2: Locate the parent div of the "Funding" section
-        const fundingSectionDiv = fundingHeader.parentElement;
-
-        // Step 3: Find the sibling div containing the buttons
-        let buttonsContainerDiv = fundingSectionDiv.nextElementSibling;
-
-        // Skip non-element nodes
-        while (buttonsContainerDiv && buttonsContainerDiv.nodeType !== 1) {
-            buttonsContainerDiv = buttonsContainerDiv.nextSibling;
-        }
-
-        if (!buttonsContainerDiv) {
-            console.error('Buttons container div not found');
-        } else {
-            // Step 4: Select all buttons within the buttons container div
-            const buttons = buttonsContainerDiv.querySelectorAll('button');
-
-            // Process each button
-            for (const button of buttons) {
-                const dateRange = button.querySelector('h3')?.textContent.trim();
-                const planName = button.querySelector('p')?.textContent.trim();
-
-                // Parse the date range and compare it to the startMonth
-                if (planName === 'NCS 2024/2025') {
-                    if (isDateRangeAfter(dateRange, startMonth)) {
-                        // Press the funding button and open the form
-                        button.click();
-                        await sleep(200);
-                        console.log(`Clicked the Delete button for ${dateRange}`);
-
-                        // Wait for the form to load
-                        const form = document.querySelector('form');
-
-                        if (form) {
-                            const formButtons = form.querySelectorAll('button');
-                            if (formButtons.length === 3) {
-                                formButtons[2].click();
-                                await sleep(200);
-                                console.log('Clicked the Delete button in the form');
-                            } else {
-                                console.error('Not enough buttons found in the form, pressing the close button');
-                                formButtons[0].click();
-                                await sleep(200);
-                            }
-                        } else {
-                            console.error('Form not found');
-                        }
-                    }
-                }
-            }
-        }
+    // Step 1: Find the "Funding" section
+    function findFundingSection() {
+        const fundingHeader = Array.from(document.querySelectorAll('h3')).find(
+            (h3) => h3.textContent.trim() === 'Funding'
+        );
+        if (!fundingHeader) throw new Error('Funding <h3> element not found');
+        return fundingHeader.parentElement.nextElementSibling;
     }
 
-    // Function to pause execution for a given number of milliseconds
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    // Step 2: Get all funding buttons
+    function getFundingButtons(fundingSection) {
+        return Array.from(fundingSection.querySelectorAll('button'));
     }
 
-    // Function to check if the date range is after the compare date
-    function isDateRangeAfter(dateRangeStr, compareDateStr) {
-        // Parse the date range string (e.g., "Aug 2024 - Aug 2024")
-        const [startDateStr] = dateRangeStr.split(' - ');
-
-        // Parse the compare date string (e.g., "September 2024")
-        const compareDate = parseMonthYear(compareDateStr);
-
-        // Parse the start date
+    // Step 3: Check if the date range is after the startMonth
+    function isDateRangeAfter(dateRange, compareDate) {
+        const [startDateStr] = dateRange.split(' - ');
         const startDate = parseMonthYear(startDateStr);
-
-        // Return true if the start date is after the compare date
-        return startDate > compareDate;
+        const compareDateParsed = parseMonthYear(compareDate);
+        return startDate > compareDateParsed;
     }
 
     function parseMonthYear(monthYearStr) {
-        // Split the string into month and year
         const [monthStr, yearStr] = monthYearStr.split(' ');
-        const month = getMonthNumber(monthStr);
-        const year = parseInt(yearStr, 10);
-
-        // Create a Date object (the first day of the month)
-        return new Date(year, month, 1);
+        return new Date(parseInt(yearStr, 10), getMonthNumber(monthStr), 1);
     }
 
     function getMonthNumber(monthStr) {
         const months = {
-            'jan': 0,
-            'january': 0,
-            'feb': 1,
-            'february': 1,
-            'mar': 2,
-            'march': 2,
-            'apr': 3,
-            'april': 3,
-            'may': 4,
-            'jun': 5,
-            'june': 5,
-            'jul': 6,
-            'july': 6,
-            'aug': 7,
-            'august': 7,
-            'sep': 8,
-            'sept': 8,
-            'september': 8,
-            'oct': 9,
-            'october': 9,
-            'nov': 10,
-            'november': 10,
-            'dec': 11,
-            'december': 11
+            'jan': 0, 'january': 0, 'feb': 1, 'february': 1,
+            'mar': 2, 'march': 2, 'apr': 3, 'april': 3,
+            'may': 4, 'jun': 5, 'june': 5, 'jul': 6,
+            'july': 6, 'aug': 7, 'august': 7, 'sep': 8,
+            'september': 8, 'oct': 9, 'october': 9,
+            'nov': 10, 'november': 10, 'dec': 11, 'december': 11
         };
+        const lowerCaseMonth = monthStr.toLowerCase();
+        if (!(lowerCaseMonth in months)) throw new Error(`Invalid month: ${monthStr}`);
+        return months[lowerCaseMonth];
+    }
 
-        monthStr = monthStr.toLowerCase();
+    // Step 4: Process and delete all matching funding plans
+    async function processFundingButtons(fundingSection, compareDate) {
+        let buttonsProcessed = false;
 
-        if (months.hasOwnProperty(monthStr)) {
-            return months[monthStr];
+        do {
+            const fundingButtons = getFundingButtons(fundingSection);
+            buttonsProcessed = false;
+
+            for (const button of fundingButtons) {
+                const dateRange = button.querySelector('h3')?.textContent.trim();
+                const planName = button.querySelector('p')?.textContent.trim();
+
+                if (planName === 'NCS 2024/2025' && dateRange && isDateRangeAfter(dateRange, compareDate)) {
+                    button.click();
+                    console.log(`Clicked the Delete button for ${dateRange}`);
+                    await sleep(50);
+
+                    const form = await waitForForm();
+                    if (form) {
+                        handleForm(form);
+                        buttonsProcessed = true; // At least one button was processed
+                    }
+                }
+            }
+        } while (buttonsProcessed); // Repeat until no buttons are processed
+    }
+
+    // Step 5: Wait for the form to appear
+    async function waitForForm() {
+        return new Promise((resolve) => {
+            const maxRetries = 10;
+            let attempts = 0;
+
+            const interval = setInterval(() => {
+                const form = document.querySelector('form');
+                if (form) {
+                    clearInterval(interval);
+                    resolve(form);
+                } else if (++attempts >= maxRetries) {
+                    clearInterval(interval);
+                    resolve(null); // Form not found after retries
+                }
+            }, 100);
+        });
+    }
+
+    // Step 6: Handle the form (delete or close)
+    function handleForm(form) {
+        const buttons = form.querySelectorAll('button');
+        if (buttons.length >= 3) {
+            buttons[2].click(); // Delete button
+            console.log('Clicked the Delete button in the form');
         } else {
-            throw new Error(`Invalid month: ${monthStr}`);
+            console.error('Not enough buttons in the form, closing the form');
+            buttons[0]?.click(); // Close button
         }
+    }
+
+    // Main process
+    try {
+        const fundingSection = findFundingSection();
+        await processFundingButtons(fundingSection, startMonth);
+        alert('All matching funding plans have been deleted.');
+        console.log('All matching funding plans have been deleted.');
+    } catch (error) {
+        console.error(error.message);
     }
 }
 
@@ -416,4 +358,4 @@ populateMonthDropdown('ecceStartDate', 'September 2024');
 populateMonthDropdown('ecceEndDate', 'June 2025');
 
 // Populate the Delete Month dropdown
-populateMonthDropdown('deleteMonth', 'September 2024');
+populateMonthDropdown('deleteMonth', 'November 2024');

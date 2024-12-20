@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Funding Form Filler",
-  "version": "1.0",
+  "version": "2.2",
   "description": "Automate filling of funding forms.",
   "permissions": ["activeTab", "scripting", "commands", "tabs"],
   "action": {
